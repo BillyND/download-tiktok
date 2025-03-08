@@ -10,7 +10,7 @@ const fetch = require("node-fetch");
 
 const app = express();
 const port = process.env.PORT || 3000;
-const MAX_STORAGE_TIME = 300000; // 5 minutes in milliseconds
+const MAX_STORAGE_TIME = 30000; // 5 minutes in milliseconds
 const SERVICE_API_URL = process.env.SERVICE_API_URL;
 
 // Setup middleware
