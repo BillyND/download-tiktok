@@ -3,48 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Douyin Video Downloader</title>
+    <title>Douyin Video Downloader - Download TikTok Videos Without Watermark</title>
+    <meta name="description" content="Free online tool to download Douyin/TikTok videos without watermark in HD quality. Save videos from Douyin to your device easily and quickly.">
+    <meta name="keywords" content="douyin downloader, tiktok downloader, download douyin videos, download tiktok videos, no watermark, video downloader">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Douyin Video Downloader - Save Videos Without Watermark">
+    <meta property="og:description" content="Download Douyin and TikTok videos in high quality without watermark. Fast, free and easy to use.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com">
+    <meta property="og:image" content="https://yourdomain.com/images/douyin-downloader-preview.jpg">
+    <link rel="canonical" href="https://yourdomain.com">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Douyin Video Downloader",
+      "url": "https://yourdomain.com",
+      "description": "Free online tool to download Douyin/TikTok videos without watermark in HD quality.",
+      "applicationCategory": "Multimedia",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </head>
-<body class="bg-gradient-to-br from-purple-50 to-blue-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-200">
+<body class="bg-gradient-to-br from-purple-50 to-blue-100 min-h-screen flex flex-col items-center justify-center p-4">
+    <header class="w-full max-w-md mb-4 text-center">
+        <h1 class="text-3xl font-bold text-gray-800">Douyin Video Downloader</h1>
+        <p class="text-gray-600 mt-2">Download videos from Douyin & TikTok without watermark</p>
+    </header>
+
+    <main class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-200">
         <div class="flex items-center mb-6">
-            <i class="fas fa-video text-blue-500 text-2xl mr-3"></i>
-            <h1 class="text-2xl font-bold text-gray-800">Douyin Video Downloader</h1>
+            <i class="fas fa-video text-blue-500 text-2xl mr-3" aria-hidden="true"></i>
+            <h2 class="text-2xl font-bold text-gray-800">Download Video</h2>
         </div>
         
         <form method="post" class="mb-6" id="downloadForm">
             <div class="mb-4">
-                <label for="url" class="block text-gray-700 font-semibold mb-2">Douyin Video URL:</label>
+                <label for="url" class="block text-gray-700 font-semibold mb-2">Douyin/TikTok Video URL:</label>
                 <div class="relative">
-                    <i class="fas fa-link absolute left-3 top-3 text-gray-400"></i>
+                    <i class="fas fa-link absolute left-3 top-3 text-gray-400" aria-hidden="true"></i>
                     <input type="text" id="url" name="url" 
                         class="shadow appearance-none border border-gray-300 rounded-lg w-full py-3 px-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" 
-                        placeholder="Paste Douyin video link here...">
+                        placeholder="Paste Douyin or TikTok video link here..."
+                        aria-label="Video URL input field">
                 </div>
             </div>
             <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all flex items-center justify-center">
-                <i class="fas fa-cloud-download-alt mr-2"></i>
+                <i class="fas fa-cloud-download-alt mr-2" aria-hidden="true"></i>
                 <span>Get Video</span>
             </button>
         </form>
 
-        <div id="status-message" class="hidden mb-4 p-3 rounded-lg text-center"></div>
+        <div id="status-message" class="hidden mb-4 p-3 rounded-lg text-center" role="alert"></div>
         
         <div id="video-container" class="mt-4 hidden">
-            <h2 class="text-lg font-semibold mb-2 text-gray-700">Preview:</h2>
+            <h3 class="text-lg font-semibold mb-2 text-gray-700">Preview:</h3>
             <div class="relative pt-2 pb-4">
                 <video controls id="video-player" class="w-full rounded-lg shadow-md">
                     Your browser does not support the video tag.
                 </video>
             </div>
             <a id="download-link" href="#" class="block mt-4 text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all">
-                <i class="fas fa-download mr-2"></i>
+                <i class="fas fa-download mr-2" aria-hidden="true"></i>
                 Download Video
             </a>
         </div>
-    </div>
+    </main>
+
+    <footer class="w-full max-w-md mt-6 text-center text-gray-600 text-sm">
+        <div class="mb-4">
+            <h2 class="font-semibold text-lg mb-2">How to Download Douyin Videos</h2>
+            <ol class="text-left list-decimal pl-5 space-y-2">
+                <li>Copy the video link from Douyin or TikTok app</li>
+                <li>Paste the URL in the input field above</li>
+                <li>Click "Get Video" and wait for processing</li>
+                <li>Click "Download Video" to save to your device</li>
+            </ol>
+        </div>
+        <p class="mt-4">© 2025 Douyin Video Downloader - Download videos without watermark</p>
+    </footer>
 
     <script>
         document.getElementById('downloadForm').addEventListener('submit', async (event) => {
@@ -57,14 +101,14 @@
             
             // Validate URL
             if (!url) {
-                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Please enter a valid Douyin video URL';
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i>Please enter a valid Douyin or TikTok video URL';
                 statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
                 return;
             }
             
             // Set button to loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Loading...</span>';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i><span>Loading...</span>';
             submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
             submitBtn.classList.add('bg-gray-500');
             
@@ -86,7 +130,7 @@
                     const videoUrl = data.videoUrl;
                     
                     // Show success message
-                    statusMessage.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Video retrieved successfully!';
+                    statusMessage.innerHTML = '<i class="fas fa-check-circle mr-2" aria-hidden="true"></i>Video retrieved successfully!';
                     statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-green-100 text-green-700';
                     
                     // Update video player
@@ -103,18 +147,18 @@
                     videoContainer.classList.remove('hidden');
                 } else {
                     // Show error message
-                    statusMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Failed to fetch video. Please check your URL and try again.';
+                    statusMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2" aria-hidden="true"></i>Failed to fetch video. Please check your URL and try again.';
                     statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
                 }
             } catch (error) {
                 console.error('Error:', error);
                 // Show error message
-                statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>An error occurred. Please try again later.';
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i>An error occurred. Please try again later.';
                 statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
             } finally {
                 // Reset button state
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-cloud-download-alt mr-2"></i><span>Get Video</span>';
+                submitBtn.innerHTML = '<i class="fas fa-cloud-download-alt mr-2" aria-hidden="true"></i><span>Get Video</span>';
                 submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
                 submitBtn.classList.remove('bg-gray-500');
                 
