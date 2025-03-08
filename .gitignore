@@ -1,0 +1,14 @@
+.history
+.history/*
+
+uploads
+uploads/*
+
+.env
+node_modules
+build
+coverage
+.vscode
+.DS_Store
+*.log
+.temp

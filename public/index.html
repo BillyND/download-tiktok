@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Douyin Video Downloader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-gray-200">
+        <div class="flex items-center mb-6">
+            <i class="fas fa-video text-blue-500 text-2xl mr-3"></i>
+            <h1 class="text-2xl font-bold text-gray-800">Douyin Video Downloader</h1>
+        </div>
+        
+        <form method="post" class="mb-6" id="downloadForm">
+            <div class="mb-4">
+                <label for="url" class="block text-gray-700 font-semibold mb-2">Douyin Video URL:</label>
+                <div class="relative">
+                    <i class="fas fa-link absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="url" name="url" 
+                        class="shadow appearance-none border border-gray-300 rounded-lg w-full py-3 px-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" 
+                        placeholder="Paste Douyin video link here...">
+                </div>
+            </div>
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all flex items-center justify-center">
+                <i class="fas fa-cloud-download-alt mr-2"></i>
+                <span>Get Video</span>
+            </button>
+        </form>
+
+        <div id="status-message" class="hidden mb-4 p-3 rounded-lg text-center"></div>
+        
+        <div id="video-container" class="mt-4 hidden">
+            <h2 class="text-lg font-semibold mb-2 text-gray-700">Preview:</h2>
+            <div class="relative pt-2 pb-4">
+                <video controls id="video-player" class="w-full rounded-lg shadow-md">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <a id="download-link" href="#" class="block mt-4 text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all">
+                <i class="fas fa-download mr-2"></i>
+                Download Video
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('downloadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const url = document.getElementById('url').value.trim();
+            const statusMessage = document.getElementById('status-message');
+            const videoContainer = document.getElementById('video-container');
+            
+            // Validate URL
+            if (!url) {
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Please enter a valid Douyin video URL';
+                statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
+                return;
+            }
+            
+            // Set button to loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i><span>Loading...</span>';
+            submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            submitBtn.classList.add('bg-gray-500');
+            
+            // Hide previous results
+            videoContainer.classList.add('hidden');
+            statusMessage.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `url=${encodeURIComponent(url)}`
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const videoUrl = data.videoUrl;
+                    
+                    // Show success message
+                    statusMessage.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Video retrieved successfully!';
+                    statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-green-100 text-green-700';
+                    
+                    // Update video player
+                    const videoPlayer = document.getElementById('video-player');
+                    videoPlayer.src = videoUrl;
+                    videoPlayer.load(); // Ensure video is properly loaded
+                    
+                    // Update download link
+                    const downloadLink = document.getElementById('download-link');
+                    downloadLink.href = videoUrl;
+                    downloadLink.download = "douyin-video.mp4"; // Set default filename
+                    
+                    // Show video container
+                    videoContainer.classList.remove('hidden');
+                } else {
+                    // Show error message
+                    statusMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>Failed to fetch video. Please check your URL and try again.';
+                    statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // Show error message
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>An error occurred. Please try again later.';
+                statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-cloud-download-alt mr-2"></i><span>Get Video</span>';
+                submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                submitBtn.classList.remove('bg-gray-500');
+                
+                // Show status message
+                statusMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
