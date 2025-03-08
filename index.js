@@ -183,40 +183,57 @@ app.post("/download", async (req, res) => {
     const downloadUrl =
       data && data.medias && data.medias.length > 0 ? data.medias[0].url : null;
 
+    console.log("videoUrl: ", videoUrl);
+
     if (!downloadUrl) {
       return res
         .status(404)
         .json({ error: "Download URL not found in response" });
     }
 
+    // Kiểm tra kích thước file
+    const fileSize = await checkFileSize(downloadUrl);
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
+    // Nếu file lớn hơn 10MB, trả về link ngay
+    if (fileSize > MAX_FILE_SIZE) {
+      return res.json({
+        videoUrl: downloadUrl,
+        originalUrl: downloadUrl,
+        isDirectLink: true,
+        fileSize: formatFileSize(fileSize),
+      });
+    }
+
     // Create a unique file name - Node.js 14 requires modification for extension
-    // let fileExtension = ".mp4"; // Default
-    // try {
-    //   const urlObj = new URL(downloadUrl);
-    //   const pathname = urlObj.pathname;
-    //   const extname = path.extname(pathname);
-    //   if (extname) fileExtension = extname;
-    // } catch (e) {
-    //   console.error("Error parsing URL:", e);
-    // }
+    let fileExtension = ".mp4"; // Default
+    try {
+      const urlObj = new URL(downloadUrl);
+      const pathname = urlObj.pathname;
+      const extname = path.extname(pathname);
+      if (extname) fileExtension = extname;
+    } catch (e) {
+      console.error("Error parsing URL:", e);
+    }
 
-    // const fileName = `${crypto
-    //   .randomBytes(16)
-    //   .toString("hex")}${fileExtension}`;
-    // const filePath = path.join(uploadsDir, fileName);
+    const fileName = `${crypto
+      .randomBytes(16)
+      .toString("hex")}${fileExtension}`;
+    const filePath = path.join(uploadsDir, fileName);
 
-    // // Download file
-    // await downloadFile(downloadUrl, filePath);
+    // Download file
+    await downloadFile(downloadUrl, filePath);
 
     // Create response URL
     const serverBaseUrl = `${req.protocol}://${req.get("host")}`;
-    // const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
+    const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
 
     res.json({
-      videoUrl: downloadUrl,
+      videoUrl: fileUrl,
       originalUrl: downloadUrl,
-      // fileName,
+      fileName: fileName,
       expiresIn: "5 minutes",
+      fileSize: formatFileSize(fileSize),
     });
   } catch (error) {
     console.error("Download error:", error);
@@ -225,6 +242,32 @@ app.post("/download", async (req, res) => {
       .json({ error: "Internal server error", message: error.message });
   }
 });
+
+// Hàm kiểm tra kích thước file từ URL
+async function checkFileSize(url) {
+  try {
+    const response = await fetch(url, { method: "HEAD" });
+    if (!response.ok)
+      throw new Error(`Error checking file size: ${response.statusText}`);
+
+    const contentLength = response.headers.get("content-length");
+    return contentLength ? parseInt(contentLength, 10) : 0;
+  } catch (error) {
+    console.error("Error getting file size:", error);
+    return 0; // Trả về 0 nếu không thể xác định kích thước
+  }
+}
+
+// Hàm format kích thước file
+function formatFileSize(bytes) {
+  if (bytes === 0) return "0 Bytes";
+
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
 
 // Serve uploaded files
 app.use("/uploads", express.static(uploadsDir));

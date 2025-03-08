@@ -70,10 +70,10 @@
                     Your browser does not support the video tag.
                 </video>
             </div>
-            <a id="download-link" href="#" class="block mt-4 text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all">
+            <button id="download-btn" class="block w-full mt-4 text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all">
                 <i class="fas fa-download mr-2" aria-hidden="true"></i>
                 Download Video
-            </a>
+            </button>
         </div>
     </main>
 
@@ -129,6 +129,9 @@
                     const data = await response.json();
                     const videoUrl = data.videoUrl;
                     
+                    // Store the video URL in a data attribute for later use
+                    document.getElementById('video-player').setAttribute('data-video-url', videoUrl);
+                    
                     // Show success message
                     statusMessage.innerHTML = '<i class="fas fa-check-circle mr-2" aria-hidden="true"></i>Video retrieved successfully!';
                     statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-green-100 text-green-700';
@@ -137,11 +140,6 @@
                     const videoPlayer = document.getElementById('video-player');
                     videoPlayer.src = videoUrl;
                     videoPlayer.load(); // Ensure video is properly loaded
-                    
-                    // Update download link
-                    const downloadLink = document.getElementById('download-link');
-                    downloadLink.href = videoUrl;
-                    downloadLink.download = "douyin-video.mp4"; // Set default filename
                     
                     // Show video container
                     videoContainer.classList.remove('hidden');
@@ -164,6 +162,61 @@
                 
                 // Show status message
                 statusMessage.classList.remove('hidden');
+            }
+        });
+
+        // JavaScript download function for the Download Video button
+        document.getElementById('download-btn').addEventListener('click', async function() {
+            const videoPlayer = document.getElementById('video-player');
+            const videoUrl = videoPlayer.getAttribute('data-video-url');
+            
+            if (!videoUrl) {
+                console.error('No video URL found');
+                return;
+            }
+
+            try {
+                // Show download in progress indicator
+                const downloadBtn = document.getElementById('download-btn');
+                downloadBtn.disabled = true;
+                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i><span>Downloading...</span>';
+                
+                // Fetch the video file
+                const response = await fetch(videoUrl);
+                const blob = await response.blob();
+                
+                // Create a temporary URL for the blob
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                // Create a temporary anchor element
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = 'douyin-video.mp4'; // Set the filename
+                
+                // Append to the body, click programmatically, and remove
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up by revoking the blob URL
+                window.URL.revokeObjectURL(blobUrl);
+                
+                // Reset button state
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download mr-2" aria-hidden="true"></i><span>Download Video</span>';
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                
+                // Show error in status message
+                const statusMessage = document.getElementById('status-message');
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i>Failed to download video. Please try again.';
+                statusMessage.className = 'block mb-4 p-3 rounded-lg text-center bg-red-100 text-red-700';
+                
+                // Reset button state
+                const downloadBtn = document.getElementById('download-btn');
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = '<i class="fas fa-download mr-2" aria-hidden="true"></i><span>Download Video</span>';
             }
         });
     </script>
