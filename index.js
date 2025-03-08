@@ -155,6 +155,7 @@ app.post("/download", async (req, res) => {
 
     // Fetch authentication token
     const token = await fetchToken();
+    console.log("token", token);
 
     // Create FormData string for request body
     const formData = new URLSearchParams();
@@ -184,6 +185,7 @@ app.post("/download", async (req, res) => {
       data && data.medias && data.medias.length > 0 ? data.medias[0].url : null;
 
     console.log("videoUrl: ", videoUrl);
+    console.log("downloadUrl: ", downloadUrl);
 
     if (!downloadUrl) {
       return res
@@ -225,7 +227,7 @@ app.post("/download", async (req, res) => {
     await downloadFile(downloadUrl, filePath);
 
     // Create response URL
-    const serverBaseUrl = `${req.protocol}://${req.get("host")}`;
+    const serverBaseUrl = `https://${req.get("host")}`;
     const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
 
     res.json({
