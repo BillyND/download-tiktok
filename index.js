@@ -6,13 +6,14 @@ const { JSDOM } = require("jsdom");
 const https = require("https");
 const crypto = require("crypto");
 require("dotenv").config();
+const fetch = require("node-fetch");
 
 const app = express();
 const port = process.env.PORT || 3000;
 const MAX_STORAGE_TIME = 300000; // 5 minutes in milliseconds
 const SERVICE_API_URL = process.env.SERVICE_API_URL;
 
-// Middleware setup
+// Setup middleware
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -31,7 +32,7 @@ app.get("/", (req, res) => {
 
 /**
  * Extract video URL from input text
- * @param {string} url - The input URL or text
+ * @param {string} url - Input URL or text
  * @returns {string|null} - Extracted video URL or null
  */
 function extractVideoUrl(url) {
@@ -40,7 +41,7 @@ function extractVideoUrl(url) {
 }
 
 /**
- * Fetch token from service site
+ * Fetch token from service page
  * @returns {Promise<string>} - Authentication token
  */
 async function fetchToken() {
@@ -78,7 +79,7 @@ function downloadFile(url, destPath) {
         if (response.statusCode !== 200) {
           fileStream.close();
           fs.unlink(destPath, () => {});
-          reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
+          reject(new Error(`Download failed: HTTP ${response.statusCode}`));
           return;
         }
 
@@ -120,7 +121,7 @@ function cleanupOldFiles() {
 
       fs.stat(filePath, (err, stats) => {
         if (err) {
-          console.error(`Error getting stats for file ${file}:`, err);
+          console.error(`Error getting file info for ${file}:`, err);
           return;
         }
 
@@ -152,8 +153,12 @@ app.post("/download", async (req, res) => {
       return res.status(400).json({ error: "Invalid URL format" });
     }
 
-    // Get authentication token
+    // Fetch authentication token
     const token = await fetchToken();
+
+    // Create FormData string for request body
+    const formData = new URLSearchParams();
+    formData.append("url", videoUrl);
 
     // Fetch video data
     const response = await fetch(
@@ -164,7 +169,7 @@ app.post("/download", async (req, res) => {
           "Content-Type": "application/x-www-form-urlencoded",
           Authorization: `Bearer ${token}`,
         },
-        body: new URLSearchParams({ url: videoUrl }),
+        body: formData.toString(),
       }
     );
 
@@ -179,20 +184,29 @@ app.post("/download", async (req, res) => {
     if (!downloadUrl) {
       return res
         .status(404)
-        .json({ error: "No download URL found in response" });
+        .json({ error: "Download URL not found in response" });
     }
 
-    // Generate unique filename
-    const fileExtension = path.extname(new URL(downloadUrl).pathname) || ".mp4";
+    // Create a unique file name - Node.js 14 requires modification for extension
+    let fileExtension = ".mp4"; // Default
+    try {
+      const urlObj = new URL(downloadUrl);
+      const pathname = urlObj.pathname;
+      const extname = path.extname(pathname);
+      if (extname) fileExtension = extname;
+    } catch (e) {
+      console.error("Error parsing URL:", e);
+    }
+
     const fileName = `${crypto
       .randomBytes(16)
       .toString("hex")}${fileExtension}`;
     const filePath = path.join(uploadsDir, fileName);
 
-    // Download the file
+    // Download file
     await downloadFile(downloadUrl, filePath);
 
-    // Generate response URL
+    // Create response URL
     const serverBaseUrl = `${req.protocol}://${req.get("host")}`;
     const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
 
@@ -206,7 +220,7 @@ app.post("/download", async (req, res) => {
     console.error("Download error:", error);
     res
       .status(500)
-      .json({ error: "Internal Server Error", message: error.message });
+      .json({ error: "Internal server error", message: error.message });
   }
 });
 
@@ -215,8 +229,8 @@ app.use("/uploads", express.static(uploadsDir));
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server is running at http://localhost:${port}`);
 });
 
-// Run cleanup at startup
+// Run cleanup on startup
 cleanupOldFiles();
