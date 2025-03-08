@@ -49,9 +49,9 @@ async function fetchToken() {
     const response = await fetch(SERVICE_API_URL);
     const html = await response.text();
     const dom = new JSDOM(html);
-    const token = dom.window.document
-      .getElementById("token")
-      ?.getAttribute("value");
+
+    const tokenElement = dom.window.document.getElementById("token");
+    const token = tokenElement ? tokenElement.value : null;
 
     if (!token) {
       throw new Error("Token not found or empty");
@@ -180,7 +180,9 @@ app.post("/download", async (req, res) => {
     const data = await response.json();
 
     // Get download URL
-    const downloadUrl = data?.medias?.[0]?.url;
+    const downloadUrl =
+      data && data.medias && data.medias.length > 0 ? data.medias[0].url : null;
+
     if (!downloadUrl) {
       return res
         .status(404)
@@ -188,32 +190,32 @@ app.post("/download", async (req, res) => {
     }
 
     // Create a unique file name - Node.js 14 requires modification for extension
-    let fileExtension = ".mp4"; // Default
-    try {
-      const urlObj = new URL(downloadUrl);
-      const pathname = urlObj.pathname;
-      const extname = path.extname(pathname);
-      if (extname) fileExtension = extname;
-    } catch (e) {
-      console.error("Error parsing URL:", e);
-    }
+    // let fileExtension = ".mp4"; // Default
+    // try {
+    //   const urlObj = new URL(downloadUrl);
+    //   const pathname = urlObj.pathname;
+    //   const extname = path.extname(pathname);
+    //   if (extname) fileExtension = extname;
+    // } catch (e) {
+    //   console.error("Error parsing URL:", e);
+    // }
 
-    const fileName = `${crypto
-      .randomBytes(16)
-      .toString("hex")}${fileExtension}`;
-    const filePath = path.join(uploadsDir, fileName);
+    // const fileName = `${crypto
+    //   .randomBytes(16)
+    //   .toString("hex")}${fileExtension}`;
+    // const filePath = path.join(uploadsDir, fileName);
 
-    // Download file
-    await downloadFile(downloadUrl, filePath);
+    // // Download file
+    // await downloadFile(downloadUrl, filePath);
 
     // Create response URL
     const serverBaseUrl = `${req.protocol}://${req.get("host")}`;
-    const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
+    // const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
 
     res.json({
-      videoUrl: fileUrl,
+      videoUrl: downloadUrl,
       originalUrl: downloadUrl,
-      fileName: fileName,
+      // fileName,
       expiresIn: "5 minutes",
     });
   } catch (error) {
