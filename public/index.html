@@ -72,6 +72,27 @@
         .input-transition:focus {
             transform: translateY(-2px);
         }
+        
+        @keyframes progress {
+            0% { width: 0%; }
+            20% { width: 20%; }
+            40% { width: 45%; }
+            60% { width: 65%; }
+            80% { width: 80%; }
+            90% { width: 90%; }
+            95% { width: 95%; }
+            100% { width: 98%; }
+        }
+        
+        .progress-animation {
+            animation: progress 3s ease-in-out;
+            animation-fill-mode: forwards;
+        }
+        
+        .download-progress-animation {
+            animation: progress 2s ease-in-out;
+            animation-fill-mode: forwards;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100 min-h-screen flex flex-col items-center justify-center p-4">
@@ -107,11 +128,36 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- New Custom Filename Input -->
+                    <div class="mb-5">
+                        <label for="custom-filename" class="block text-gray-700 font-semibold mb-2">Custom Filename (Optional):</label>
+                        <div class="relative">
+                            <i class="fas fa-file-video absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true"></i>
+                            <input type="text" id="custom-filename" name="custom-filename" 
+                                class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full h-12 px-10 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all input-transition" 
+                                placeholder="Enter custom filename or leave empty for default"
+                                aria-label="Custom filename input field">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Default: VIDEO_[timestamp].mp4</p>
+                    </div>
+                    
                     <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3.5 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-all flex items-center justify-center btn-pulse">
                         <i class="fas fa-cloud-download-alt mr-2" aria-hidden="true"></i>
                         <span>Get Video</span>
                     </button>
                 </form>
+
+                <!-- Progress bar container (hidden by default) -->
+                <div id="progress-container" class="mb-6 hidden">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-gray-700 font-semibold" id="progress-text">Processing video...</span>
+                        <span class="text-blue-600 font-semibold" id="progress-percentage">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full w-0"></div>
+                    </div>
+                </div>
 
                 <div id="status-message" class="hidden mb-4 p-4 rounded-lg text-center font-medium" role="alert"></div>
                 
@@ -128,6 +174,17 @@
                         <i class="fas fa-download mr-2" aria-hidden="true"></i>
                         Download Video
                     </button>
+                    
+                    <!-- Download progress bar (hidden by default) -->
+                    <div id="download-progress-container" class="mt-4 hidden">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-gray-700 font-semibold">Downloading video...</span>
+                            <span class="text-green-600 font-semibold" id="download-progress-percentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="download-progress-bar" class="bg-green-600 h-2.5 rounded-full w-0"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -204,6 +261,11 @@
             }
         });
 
+        // Function to update progress percentage
+        function updateProgressPercentage(percentage, elementId) {
+            document.getElementById(elementId).textContent = `${percentage}%`;
+        }
+
         document.getElementById('downloadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
             
@@ -211,6 +273,8 @@
             const url = document.getElementById('url').value.trim();
             const statusMessage = document.getElementById('status-message');
             const videoContainer = document.getElementById('video-container');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
             
             // Validate URL
             if (!url) {
@@ -221,7 +285,7 @@
             
             // Set button to loading state
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i><span>Processing...</span>';
+            submitBtn.innerHTML = '<span>Processing...</span>';
             submitBtn.classList.remove('btn-pulse');
             submitBtn.classList.remove('from-blue-600', 'to-indigo-600', 'hover:from-blue-700', 'hover:to-indigo-700');
             submitBtn.classList.add('from-gray-400', 'to-gray-500');
@@ -229,6 +293,23 @@
             // Hide previous results
             videoContainer.classList.add('hidden');
             statusMessage.classList.add('hidden');
+            
+            // Show progress bar
+            progressContainer.classList.remove('hidden');
+            progressBar.classList.add('progress-animation');
+            
+            // Update progress percentage at intervals
+            let percentage = 0;
+            const percentageElement = document.getElementById('progress-percentage');
+            
+            const progressInterval = setInterval(() => {
+                percentage += 5;
+                if (percentage > 95) {
+                    clearInterval(progressInterval);
+                } else {
+                    updateProgressPercentage(percentage, 'progress-percentage');
+                }
+            }, 150);
             
             try {
                 const response = await fetch('/download', {
@@ -238,6 +319,20 @@
                     },
                     body: `url=${encodeURIComponent(url)}`
                 });
+
+                // Clear progress interval
+                clearInterval(progressInterval);
+                
+                // Complete progress animation
+                updateProgressPercentage(100, 'progress-percentage');
+                progressBar.style.width = '100%';
+                
+                // Hide progress after a short delay
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    progressBar.classList.remove('progress-animation');
+                    progressBar.style.width = '0';
+                }, 500);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -265,6 +360,11 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
+                // Clear progress interval
+                clearInterval(progressInterval);
+                // Hide progress
+                progressContainer.classList.add('hidden');
+                
                 // Show error message
                 statusMessage.innerHTML = '<i class="fas fa-exclamation-triangle mr-2" aria-hidden="true"></i>An error occurred. Please try again later.';
                 statusMessage.className = 'block mb-4 p-4 rounded-lg text-center bg-red-100 text-red-700 font-medium';
@@ -284,6 +384,8 @@
         document.getElementById('download-btn').addEventListener('click', async function() {
             const videoPlayer = document.getElementById('video-player');
             const videoUrl = videoPlayer.getAttribute('data-video-url');
+            const downloadProgressContainer = document.getElementById('download-progress-container');
+            const downloadProgressBar = document.getElementById('download-progress-bar');
             
             if (!videoUrl) {
                 console.error('No video URL found');
@@ -294,13 +396,41 @@
                 // Show download in progress indicator
                 const downloadBtn = document.getElementById('download-btn');
                 downloadBtn.disabled = true;
-                downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2" aria-hidden="true"></i><span>Downloading...</span>';
+                downloadBtn.innerHTML = '<span>Downloading...</span>';
                 downloadBtn.classList.remove('from-green-500', 'to-emerald-600');
                 downloadBtn.classList.add('from-gray-400', 'to-gray-500');
+                
+                // Show download progress bar
+                downloadProgressContainer.classList.remove('hidden');
+                downloadProgressBar.classList.add('download-progress-animation');
+                
+                // Update download progress percentage at intervals
+                let downloadPercentage = 0;
+                const downloadPercentageElement = document.getElementById('download-progress-percentage');
+                
+                const downloadProgressInterval = setInterval(() => {
+                    downloadPercentage += 8;
+                    if (downloadPercentage > 95) {
+                        clearInterval(downloadProgressInterval);
+                    } else {
+                        downloadPercentageElement.textContent = `${downloadPercentage}%`;
+                    }
+                }, 150);
+                
+                // Get custom filename from input or use default
+                const customFilename = document.getElementById('custom-filename').value.trim();
+                let filename = customFilename ? `${customFilename}.mp4` : `VIDEO_${Date.now()}.mp4`;
                 
                 // Fetch the video file
                 const response = await fetch(videoUrl);
                 const blob = await response.blob();
+                
+                // Clear download progress interval
+                clearInterval(downloadProgressInterval);
+                
+                // Complete download progress animation
+                downloadPercentageElement.textContent = '100%';
+                downloadProgressBar.style.width = '100%';
                 
                 // Create a temporary URL for the blob
                 const blobUrl = window.URL.createObjectURL(blob);
@@ -308,7 +438,7 @@
                 // Create a temporary anchor element
                 const link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = 'douyin-video.mp4'; // Set the filename
+                link.download = filename; // Set the filename
                 
                 // Append to the body, click programmatically, and remove
                 document.body.appendChild(link);
@@ -324,13 +454,24 @@
                 downloadBtn.classList.remove('from-gray-400', 'to-gray-500');
                 downloadBtn.classList.add('from-green-500', 'to-emerald-600');
                 
-                // Reset button text after 2 seconds
+                // Hide download progress after a short delay
                 setTimeout(() => {
+                    downloadProgressContainer.classList.add('hidden');
+                    downloadProgressBar.classList.remove('download-progress-animation');
+                    downloadProgressBar.style.width = '0';
+                    
+                    // Reset button text
                     downloadBtn.innerHTML = '<i class="fas fa-download mr-2" aria-hidden="true"></i><span>Download Video</span>';
-                }, 2000);
+                }, 1500);
                 
             } catch (error) {
                 console.error('Download error:', error);
+                
+                // Clear download progress interval if it exists
+                clearInterval(downloadProgressInterval);
+                
+                // Hide download progress
+                downloadProgressContainer.classList.add('hidden');
                 
                 // Show error in status message
                 const statusMessage = document.getElementById('status-message');
