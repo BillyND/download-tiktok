@@ -227,7 +227,9 @@ app.post("/download", async (req, res) => {
     await downloadFile(downloadUrl, filePath);
 
     // Create response URL
-    const serverBaseUrl = `https://${req.get("host")}`;
+    const host = req.get("host");
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const serverBaseUrl = `${protocol}://${host}`;
     const fileUrl = `${serverBaseUrl}/uploads/${fileName}`;
 
     res.json({
