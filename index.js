@@ -155,7 +155,6 @@ app.post("/download", async (req, res) => {
 
     // Fetch authentication token
     const token = await fetchToken();
-    console.log("token", token);
 
     // Create FormData string for request body
     const formData = new URLSearchParams();
@@ -184,9 +183,6 @@ app.post("/download", async (req, res) => {
     const downloadUrl =
       data && data.medias && data.medias.length > 0 ? data.medias[0].url : null;
 
-    console.log("videoUrl: ", videoUrl);
-    console.log("downloadUrl: ", downloadUrl);
-
     if (!downloadUrl) {
       return res
         .status(404)
@@ -195,7 +191,10 @@ app.post("/download", async (req, res) => {
 
     // Kiểm tra kích thước file
     const fileSize = await checkFileSize(downloadUrl);
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
+    console.log("fileSize: ", fileSize);
+
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB in bytes
 
     // Nếu file lớn hơn 10MB, trả về link ngay
     if (fileSize > MAX_FILE_SIZE) {
